@@ -1,0 +1,8 @@
+{
+  "cv_primary": 0.9951787168798812,
+  "test_accuracy": 0.995,
+  "model_type": "LogisticRegression",
+  "training_date": "2025-08-15",
+  "total_samples": 8000,
+  "feature_count": 26
+}

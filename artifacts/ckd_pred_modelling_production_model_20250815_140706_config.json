@@ -1,0 +1,42 @@
+{
+  "experiment_name": "ckd_pred_modelling",
+  "problem_type": "classification",
+  "target_name": "ckd_pred",
+  "feature_names": [
+    "serum_creatinine",
+    "gfr",
+    "bun",
+    "serum_calcium",
+    "ana",
+    "c3_c4",
+    "hematuria",
+    "oxalate_levels",
+    "urine_ph",
+    "blood_pressure",
+    "water_intake",
+    "smoking",
+    "painkiller_usage",
+    "family_history",
+    "months",
+    "cluster",
+    "physical_activity_rarely",
+    "physical_activity_weekly",
+    "diet_high protein",
+    "diet_low salt",
+    "alcohol_never",
+    "alcohol_occasionally",
+    "weight_changes_loss",
+    "weight_changes_stable",
+    "stress_level_low",
+    "stress_level_moderate"
+  ],
+  "n_classes": 2,
+  "splits": {
+    "train": 2600,
+    "val": 600,
+    "test": 800
+  },
+  "random_state": 42,
+  "stratified": true,
+  "primary_metric": "f1"
+}
