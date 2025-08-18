@@ -1,19 +1,12 @@
-﻿FROM python:3.11-slim
+﻿FROM public.ecr.aws/lambda/python:3.12
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt /app/
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py /app/
-COPY artifacts /app/artifacts
+# Copy application code and model artifacts
+COPY app.py ./
+COPY artifacts /var/task/artifacts/
 
-EXPOSE 8080
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# Set the Lambda handler
+CMD ["app.lambda_handler"]
