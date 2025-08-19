@@ -10,7 +10,7 @@ import pandas as pd
 import json
 
 app = FastAPI(title="CKD Predictor", version="1.0.0")
-handler = Mangum(app)
+lambda_handler = Mangum(app)
 
 # Model path and threshold from environment
 MODEL_PATH = os.getenv("MODEL_PATH", "/var/task/artifacts/model.joblib")
@@ -75,6 +75,3 @@ async def predict(payload: Rows, threshold: Optional[float] = None):
         return {"pred": pred, "proba": proba.tolist() if proba is not None else None}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Inference failed: {e}")
-
-def lambda_handler(event, context):
-    return handler(event, context)

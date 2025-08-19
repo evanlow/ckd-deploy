@@ -1,12 +1,15 @@
 ﻿FROM public.ecr.aws/lambda/python:3.12
 
 # Install Python dependencies
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# 1) Install Python dependencies into /var/task (Lambda's task root)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-# Copy application code and model artifacts
+# 2) Copy application code + model artifacts
 COPY app.py ./
-COPY artifacts /var/task/artifacts/
+COPY artifacts ./artifacts
 
-# Set the Lambda handler
+# 3) Explicit handler; matches your app.py
 CMD ["app.lambda_handler"]
