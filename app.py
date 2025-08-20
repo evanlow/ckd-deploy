@@ -2,15 +2,19 @@
 
 from fastapi import FastAPI, HTTPException
 from mangum import Mangum
+import os
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
-import os
 import joblib
 import pandas as pd
 import json
 
 app = FastAPI(title="CKD Predictor", version="1.0.0")
-lambda_handler = Mangum(app)
+base_path = os.getenv("API_GATEWAY_BASE_PATH")  # e.g., "/prod"
+if base_path:
+    lambda_handler = Mangum(app, api_gateway_base_path=base_path)
+else:
+    lambda_handler = Mangum(app)
 
 # Model path and threshold from environment
 MODEL_PATH = os.getenv("MODEL_PATH", "/var/task/artifacts/model.joblib")
@@ -49,10 +53,17 @@ async def health():
 async def predict(payload: Rows, threshold: Optional[float] = None):
     if not payload.rows:
         raise HTTPException(status_code=400, detail="No rows provided.")
+
     try:
         X = pd.DataFrame(payload.rows)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Could not build DataFrame: {e}")
+
+    # Log column order for traceability
+    try:
+        print(f"[predict] X.columns: {X.columns.tolist()}")
+    except Exception:
+        pass
 
     # Normalize columns
     if EXPECTED:
