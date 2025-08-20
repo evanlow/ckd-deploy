@@ -49,6 +49,10 @@ class Rows(BaseModel):
 async def health():
     return {"status": "ok", "expected_count": len(EXPECTED) if EXPECTED else None}
 
+@app.get("/schema")
+def schema():
+    return {"expected": EXPECTED}
+
 @app.post("/predict")
 async def predict(payload: Rows, threshold: Optional[float] = None):
     if not payload.rows:
