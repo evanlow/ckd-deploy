@@ -11,7 +11,7 @@ env:
 phases:
   pre_build:
     commands:
-      - "set -euo pipefail"
+      - "set -e"
       - "echo Logging in to ECR..."
       - "aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
       - "echo Preparing tag... && TAG=$(date +%Y%m%d-%H%M%S) && echo TAG=$TAG > tag.env"
