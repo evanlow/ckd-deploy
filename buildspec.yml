@@ -59,10 +59,7 @@ phases:
   post_build:
     commands:
       - echo "Updating Lambda to new image..."
-      - aws lambda update-function-code \
-          --function-name "$FUNC" \
-          --image-uri "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG" \
-          --region "$REGION"
+      - aws lambda update-function-code --function-name "$FUNC" --image-uri "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG" --region "$REGION"
       - echo "Done. Image tag: $TAG"
 
 artifacts:
