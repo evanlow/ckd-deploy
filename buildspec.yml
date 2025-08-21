@@ -3,24 +3,24 @@ version: 0.2
 env:
   variables:
     REGION: us-east-1
-    ACCOUNT_ID: 023637616838
-    REPO: ckd-predictor-test
-    FUNC: ckd-predictor
-    MODEL_BUCKET: ckd-model-artifacts-use1
-    MODEL_PREFIX: ckd_pred/        # trailing slash OK
+    ACCOUNT_ID: "023637616838"
+    REPO: "ckd-predictor-test"
+    FUNC: "ckd-predictor"
+    MODEL_BUCKET: "ckd-model-artifacts-use1"
+    MODEL_PREFIX: "ckd_pred/"
+  exported-variables:
+    - TAG
+    - IMAGE_URI
 
 phases:
   pre_build:
     commands:
-      - set -e
-      - echo "Logging in to ECR..."
-      - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
-
-      - echo "Preparing tag..."
-      - TAG=$(date +%Y%m%d-%H%M%S) && echo "TAG=$TAG" > tag.env
-
-      - echo "Finding latest *.joblib under s3://$MODEL_BUCKET/$MODEL_PREFIX ..."
-      # newest .joblib under the prefix
+      - 'set -e'
+      - 'echo Logging in to ECR...'
+      - 'aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"'
+      - 'echo Preparing tag...'
+      - 'TAG=$(date +%Y%m%d-%H%M%S) && echo "TAG=$TAG" > tag.env && echo "TAG=$TAG"'
+      - 'echo "Finding latest *.joblib under s3://$MODEL_BUCKET/$MODEL_PREFIX ..."'
       - |
         LATEST_KEY=$(aws s3api list-objects-v2 \
           --bucket "$MODEL_BUCKET" \
@@ -34,8 +34,6 @@ phases:
         echo "LATEST_KEY=$LATEST_KEY"
         mkdir -p artifacts
         aws s3 cp "s3://$MODEL_BUCKET/$LATEST_KEY" "artifacts/model.joblib"
-
-      # best-effort pull of sidecar JSONs matching the model stem
       - |
         STEM_FILE=$(basename "$LATEST_KEY")
         STEM="${STEM_FILE%_model.joblib}"
@@ -45,22 +43,23 @@ phases:
           echo "Trying sidecar: s3://$MODEL_BUCKET/$CANDIDATE"
           aws s3 cp "s3://$MODEL_BUCKET/$CANDIDATE" "artifacts/$(basename "$CANDIDATE")" || true
         done
-
-      - echo "Artifacts prepared:" && ls -l artifacts
+      - 'echo "Artifacts prepared:" && ls -l artifacts'
 
   build:
     commands:
-      - echo "Building Docker image..."
-      - docker build --platform linux/amd64 -t "$REPO:$TAG" -f Dockerfile.local .
-      - docker tag "$REPO:$TAG" "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG"
-      - echo "Pushing image..."
-      - docker push "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG"
+      - 'echo Building Docker image...'
+      - 'docker build --platform linux/amd64 -t "$REPO:$TAG" -f Dockerfile.local .'
+      - 'echo Tagging image for ECR...'
+      - 'IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG"'
+      - 'docker tag "$REPO:$TAG" "$IMAGE_URI"'
+      - 'echo Pushing image...'
+      - 'docker push "$IMAGE_URI"'
 
   post_build:
     commands:
-      - echo "Updating Lambda to new image..."
-      - aws lambda update-function-code --function-name "$FUNC" --image-uri "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG" --region "$REGION"
-      - echo "Done. Image tag: $TAG"
+      - 'echo Updating Lambda to new image...'
+      - 'aws lambda update-function-code --function-name "$FUNC" --image-uri "$IMAGE_URI" --region "$REGION" > /dev/null'
+      - 'echo "Done. Image tag: $TAG  Image URI: $IMAGE_URI"'
 
 artifacts:
   files:
