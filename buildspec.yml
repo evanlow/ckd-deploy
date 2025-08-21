@@ -5,7 +5,7 @@ env:
     ACCOUNT_ID: 023637616838
     REPO: ckd-predictor-test
     FUNC: ckd-predictor
-    MODEL_BUCKET: ckd-models-artifacts-use1      # <-- your bucket
+    MODEL_BUCKET: ckd-model-artifacts-use1      # <-- your bucket
     MODEL_PREFIX: ckd_pred/                      # <-- your prefix (trailing slash OK)
 
 phases:
