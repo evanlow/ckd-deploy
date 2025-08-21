@@ -16,14 +16,14 @@ phases:
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
       - echo "Preparing tag..."
-      - TAG=$(date +%Y%m%d-%H%M%S)
+      - "TAG=$(date +%Y%m%d-%H%M%S)"
       - echo "TAG=$TAG" > tag.env
 
       - echo "Finding latest *.joblib under s3://$MODEL_BUCKET/$MODEL_PREFIX ..."
-      - LATEST_KEY=$(aws s3api list-objects-v2 --bucket "$MODEL_BUCKET" --prefix "$MODEL_PREFIX" --query "reverse(sort_by(Contents[?ends_with(Key, \`.joblib\`)==\`true\`], &LastModified))[0].Key" --output text); if [ -z "$LATEST_KEY" ] || [ "$LATEST_KEY" = "None" ]; then echo "ERROR: No .joblib found in s3://$MODEL_BUCKET/$MODEL_PREFIX" >&2; exit 1; fi; echo "LATEST_KEY=$LATEST_KEY"; mkdir -p artifacts; aws s3 cp "s3://$MODEL_BUCKET/$LATEST_KEY" artifacts/model.joblib
+      - "LATEST_KEY=$(aws s3api list-objects-v2 --bucket \"$MODEL_BUCKET\" --prefix \"$MODEL_PREFIX\" --query \"reverse(sort_by(Contents[?ends_with(Key, \\\\`.joblib\\\\`)==\\\\`true\\\\`], &LastModified))[0].Key\" --output text); if [ -z \"$LATEST_KEY\" ] || [ \"$LATEST_KEY\" = \"None\" ]; then echo \"ERROR: No .joblib found in s3://$MODEL_BUCKET/$MODEL_PREFIX\" >&2; exit 1; fi; echo \"LATEST_KEY=$LATEST_KEY\"; mkdir -p artifacts; aws s3 cp \"s3://$MODEL_BUCKET/$LATEST_KEY\" artifacts/model.joblib"
 
       # Optional: fetch matching JSON sidecars if they share the same stem (foo_YYYYMMDD_HHMMSS)
-      - STEM_FILE=$(basename "$LATEST_KEY"); STEM="${STEM_FILE%_model.joblib}"; STEM="${STEM%*.joblib}"; for suffix in _config.json _metadata.json _metrics.json; do CANDIDATE="${MODEL_PREFIX}${STEM}${suffix}"; echo "Trying sidecar: s3://$MODEL_BUCKET/$CANDIDATE"; aws s3 cp "s3://$MODEL_BUCKET/$CANDIDATE" "artifacts/$(basename "$CANDIDATE")" || true; done
+      - "STEM_FILE=$(basename \"$LATEST_KEY\"); STEM=\"${STEM_FILE%_model.joblib}\"; STEM=\"${STEM%*.joblib}\"; for suffix in _config.json _metadata.json _metrics.json; do CANDIDATE=\"${MODEL_PREFIX}${STEM}${suffix}\"; echo \"Trying sidecar: s3://$MODEL_BUCKET/$CANDIDATE\"; aws s3 cp \"s3://$MODEL_BUCKET/$CANDIDATE\" \"artifacts/$(basename \"$CANDIDATE\")\" || true; done"
 
       - echo "Artifacts prepared:"
       - ls -l artifacts
